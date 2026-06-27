@@ -176,10 +176,11 @@ namespace AvaloniaApplication3
             {
                 connection.Open();
 
-                string findQuery = "SELECT id, status, occupation FROM Humans WHERE full_name LIKE @name LIMIT 1";
+                string findQuery = "SELECT id, status, occupation, sin_percentage FROM Humans WHERE full_name LIKE @name LIMIT 1";
                 long humanId = -1;
                 string currentStatus = "";
                 string occupation = "";
+                int sinPercentage = 0;
 
                 using (var findCmd = new SqliteCommand(findQuery, connection))
                 {
@@ -191,6 +192,7 @@ namespace AvaloniaApplication3
                             humanId = reader.GetInt64(0);
                             currentStatus = reader.GetString(1);
                             occupation = reader.GetString(2);
+                            sinPercentage = reader.GetInt32(3);
                         }
                     }
                 }
@@ -228,6 +230,7 @@ namespace AvaloniaApplication3
                     insertCmd.Parameters.AddWithValue("@time", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
                     insertCmd.ExecuteNonQuery();
                 }
+
                 bool isAgent = occupation.Contains("штаб") || occupation.Contains("опергрупп") || occupation.Contains("полици") || occupation.Contains("аналитик");
 
                 if (isAgent)
@@ -249,9 +252,20 @@ namespace AvaloniaApplication3
                 }
                 else
                 {
-                    if (txtLogL != null)
+                    if (sinPercentage >= 70)
                     {
-                        txtLogL.Text += "\n[" + DateTime.Now.ToString("HH:mm:ss") + "] Очередной сердечный приступ. L проверяет медицинские карты.";
+                        _currentSuspicion = Math.Max(0, _currentSuspicion - 5);
+                        if (txtLogL != null)
+                        {
+                            txtLogL.Text += "\n[" + DateTime.Now.ToString("HH:mm:ss") + "] Преступник скончался от сердечного приступа. L считает это совпадением. Подозрение снижено.";
+                        }
+                    }
+                    else
+                    {
+                        if (txtLogL != null)
+                        {
+                            txtLogL.Text += "\n[" + DateTime.Now.ToString("HH:mm:ss") + "] Очередной сердечный приступ. L проверяет медицинские карты.";
+                        }
                     }
                 }
 
@@ -270,7 +284,7 @@ namespace AvaloniaApplication3
                         "КОНЕЦ ИГРЫ — РАСКРЫТИЕ ЛИЧНОСТИ КИРЫ",
                         "Раздается оглушительный вой сирен. Здание полностью блокировано спецназом Интерпола.\n\n" +
                         "В комнату врываются вооруженные оперативники во главе с гениальным детективом L. Вы загнаны в угол, у вас изымают Тетрадь Смерти и заковывают в наручники. Суд приговаривает вас к пожизненному одиночному заключению в подземной тюрьме строгого режима без права на помилование...\n\n" +
-                        "Проходит несколько дней. Внезапно в тусклом свете одиночной камеры появляется зловещий силуэт Бога Смерти. Рюк разочарованно смотрит на вас через железную решетку и тихо говорит:\n" +
+                        "Проходит несколько дней. Внезапно в тусклом свете одиночной камеры появляется зловещий силуэт Boga Смерти. Рюк разочарованно смотрит на вас через железную решетку и тихо говорит:\n" +
                         "«Было весело, Лайт. Мы знатно развлеклись и устроили настоящий хаос в мире людей. Но если тебя засадили в эту нору до конца твоих дней, я просто сойду с ума от скуки, дожидаясь, пока ты сгниешь здесь в одиночестве.\n\n" +
                         "Правила есть правила. Пожалуй, наша игра подошла к финалу...»\n\n" +
                         "Рюк с жуткой ухмылкой открывает свою личную Тетрадь Смерти, берет ручку и уверенно выводит аккуратным почерком: «Лайт Ягами». \n\n" +
@@ -410,9 +424,9 @@ namespace AvaloniaApplication3
             };
 
             var mainGrid = new Grid { RowDefinitions = new RowDefinitions("*, Auto"), Margin = new Avalonia.Thickness(20) };
-
             var scroll = new ScrollViewer { VerticalScrollBarVisibility = Avalonia.Controls.Primitives.ScrollBarVisibility.Auto, Margin = new Avalonia.Thickness(0, 0, 0, 15) };
-            Grid.SetRow(scroll, 0); 
+            Grid.SetRow(scroll, 0);
+
             var panel = new StackPanel { Spacing = 15 };
             panel.Children.Add(new TextBlock { Text = title, FontSize = 16, FontWeight = Avalonia.Media.FontWeight.Bold, Foreground = Avalonia.Media.Brushes.Red, HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center });
             panel.Children.Add(new TextBlock { Text = text, FontSize = 12, Foreground = Avalonia.Media.Brushes.White, TextWrapping = Avalonia.Media.TextWrapping.Wrap });
